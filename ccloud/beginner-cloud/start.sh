@@ -25,16 +25,17 @@ check_docker || exit 1
 # Create a new environment and specify it as the default
 ##################################################
 
-ENVIRONMENT_NAME="demo-script-env"
-echo -e "\n# Create a new Confluent Cloud environment $ENVIRONMENT_NAME"
-echo "ccloud environment create $ENVIRONMENT_NAME -o json"
-OUTPUT=$(ccloud environment create $ENVIRONMENT_NAME -o json)
-if [[ $? != 0 ]]; then
-  echo "ERROR: Failed to create environment $ENVIRONMENT_NAME. Please troubleshoot (maybe run ./cleanup.sh) and run again"
-  exit 1
-fi
-echo "$OUTPUT" | jq .
-ENVIRONMENT=$(echo "$OUTPUT" | jq -r ".id")
+# ENVIRONMENT_NAME="demo-script-env"
+# echo -e "\n# Create a new Confluent Cloud environment $ENVIRONMENT_NAME"
+# echo "ccloud environment create $ENVIRONMENT_NAME -o json"
+# OUTPUT=$(ccloud environment create $ENVIRONMENT_NAME -o json)
+# if [[ $? != 0 ]]; then
+#   echo "ERROR: Failed to create environment $ENVIRONMENT_NAME. Please troubleshoot (maybe run ./cleanup.sh) and run again"
+#   exit 1
+# fi
+# echo "$OUTPUT" | jq .
+# ENVIRONMENT=$(echo "$OUTPUT" | jq -r ".id")
+ENVIRONMENT=env-j8dgw
 #echo $ENVIRONMENT
 
 echo -e "\n# Specify $ENVIRONMENT as the active environment"
@@ -45,22 +46,23 @@ ccloud environment use $ENVIRONMENT
 # Create a new Kafka cluster and specify it as the default
 ##################################################
 
-CLUSTER_NAME="${CLUSTER_NAME:-demo-kafka-cluster}"
-CLUSTER_CLOUD="${CLUSTER_CLOUD:-aws}"
-CLUSTER_REGION="${CLUSTER_REGION:-us-west-2}"
-echo -e "\n# Create a new Confluent Cloud cluster $CLUSTER_NAME"
-echo "ccloud kafka cluster create $CLUSTER_NAME --cloud $CLUSTER_CLOUD --region $CLUSTER_REGION"
-OUTPUT=$(ccloud kafka cluster create $CLUSTER_NAME --cloud $CLUSTER_CLOUD --region $CLUSTER_REGION)
-status=$?
-echo "$OUTPUT"
-if [[ $status != 0 ]]; then
-  echo "ERROR: Failed to create Kafka cluster $CLUSTER_NAME. Please troubleshoot and run again"
-  exit 1
-fi
-CLUSTER=$(echo "$OUTPUT" | grep '| Id' | awk '{print $4;}')
+# CLUSTER_NAME="${CLUSTER_NAME:-demo-kafka-cluster}"
+# CLUSTER_CLOUD="${CLUSTER_CLOUD:-aws}"
+# CLUSTER_REGION="${CLUSTER_REGION:-us-west-2}"
+# echo -e "\n# Create a new Confluent Cloud cluster $CLUSTER_NAME"
+# echo "ccloud kafka cluster create $CLUSTER_NAME --cloud $CLUSTER_CLOUD --region $CLUSTER_REGION"
+# OUTPUT=$(ccloud kafka cluster create $CLUSTER_NAME --cloud $CLUSTER_CLOUD --region $CLUSTER_REGION)
+# status=$?
+# echo "$OUTPUT"
+# if [[ $status != 0 ]]; then
+#   echo "ERROR: Failed to create Kafka cluster $CLUSTER_NAME. Please troubleshoot and run again"
+#   exit 1
+# fi
+# CLUSTER=$(echo "$OUTPUT" | grep '| Id' | awk '{print $4;}')
 
-echo -e "\n# Specify $CLUSTER as the active Kafka cluster"
-echo "ccloud kafka cluster use $CLUSTER"
+# echo -e "\n# Specify $CLUSTER as the active Kafka cluster"
+# echo "ccloud kafka cluster use $CLUSTER"
+CLUSTER=lkc-p973y
 ccloud kafka cluster use $CLUSTER
 
 BOOTSTRAP_SERVERS=$(ccloud kafka cluster describe $CLUSTER -o json | jq -r ".endpoint" | cut -c 12-)
@@ -70,17 +72,18 @@ BOOTSTRAP_SERVERS=$(ccloud kafka cluster describe $CLUSTER -o json | jq -r ".end
 # Create a user key/secret pair and specify it as the default
 ##################################################
 
-echo -e "\n# Create a new API key for user"
-echo "ccloud api-key create --description \"Demo credentials\" --resource $CLUSTER -o json"
-OUTPUT=$(ccloud api-key create --description "Demo credentials" --resource $CLUSTER -o json)
-status=$?
-if [[ $status != 0 ]]; then
-  echo "ERROR: Failed to create an API key.  Please troubleshoot and run again"
-  exit 1
-fi
-echo "$OUTPUT" | jq .
+# echo -e "\n# Create a new API key for user"
+# echo "ccloud api-key create --description \"Demo credentials\" --resource $CLUSTER -o json"
+# OUTPUT=$(ccloud api-key create --description "Demo credentials" --resource $CLUSTER -o json)
+# status=$?
+# if [[ $status != 0 ]]; then
+#   echo "ERROR: Failed to create an API key.  Please troubleshoot and run again"
+#   exit 1
+# fi
+# echo "$OUTPUT" | jq .
 
-API_KEY=$(echo "$OUTPUT" | jq -r ".key")
+# API_KEY=$(echo "$OUTPUT" | jq -r ".key")
+API_KEY=4VQUDZPIRQHVEBR2
 echo -e "\n# Associate the API key $API_KEY to the Kafka cluster $CLUSTER"
 echo "ccloud api-key use $API_KEY --resource $CLUSTER"
 ccloud api-key use $API_KEY --resource $CLUSTER
@@ -98,7 +101,7 @@ printf "\n\n"
 # Produce and consume with Confluent Cloud CLI
 ##################################################
 
-TOPIC1="demo-topic-1"
+TOPIC1="mdm-ais-sentence-1"
 
 echo -e "\n# Create a new Kafka topic $TOPIC1"
 echo "ccloud kafka topic create $TOPIC1"
@@ -133,7 +136,7 @@ timeout 10s ccloud kafka topic consume $TOPIC1 -b
 
 echo -e "\n# Create a new service account"
 RANDOM_NUM=$((1 + RANDOM % 1000000))
-SERVICE_NAME="demo-app-$RANDOM_NUM"
+SERVICE_NAME="mdm-ais-$RANDOM_NUM"
 echo "ccloud service-account create $SERVICE_NAME --description $SERVICE_NAME -o json"
 OUTPUT=$(ccloud service-account create $SERVICE_NAME --description $SERVICE_NAME  -o json)
 echo "$OUTPUT" | jq .
@@ -229,7 +232,7 @@ ccloud kafka acl delete --allow --service-account $SERVICE_ACCOUNT_ID --operatio
 # - The following steps configure ACLs to match topics prefixed with a value
 ##################################################
 
-TOPIC2="demo-topic-2"
+TOPIC2="mdm-ais-sentence-2"
 
 echo -e "\n# Create a new Kafka topic $TOPIC2"
 echo "ccloud kafka topic create $TOPIC2"
@@ -271,7 +274,7 @@ ccloud kafka acl delete --allow --service-account $SERVICE_ACCOUNT_ID --operatio
 # - Confluent Hub: https://www.confluent.io/hub/
 ##################################################
 
-TOPIC3="demo-topic-3"
+TOPIC3="mdm-ais-sentence-3"
 
 echo -e "\n# Create a new Kafka topic $TOPIC3"
 echo "ccloud kafka topic create $TOPIC3"
