@@ -30,8 +30,9 @@ ccloud::validate_logged_in_ccloud_cli \
 
 echo ====== Create new Confluent Cloud stack
 ccloud::prompt_continue_ccloud_demo || exit 1
-ccloud::create_ccloud_stack true
-SERVICE_ACCOUNT_ID=$(ccloud kafka cluster list -o json | jq -r '.[0].name' | awk -F'-' '{print $4;}')
+# ccloud::create_ccloud_stack true
+# SERVICE_ACCOUNT_ID=$(ccloud kafka cluster list -o json | jq -r '.[0].name' | awk -F'-' '{print $4;}')
+SERVICE_ACCOUNT_ID=118167
 if [[ "$SERVICE_ACCOUNT_ID" == "" ]]; then
   echo "ERROR: Could not determine SERVICE_ACCOUNT_ID from 'ccloud kafka cluster list'. Please troubleshoot, destroy stack, and try again to create the stack."
   exit 1
@@ -125,13 +126,13 @@ EOF
 fi
 printf "\n"
 
-echo ====== Create topic pageviews in local cluster
-kafka-topics --bootstrap-server localhost:9092 --create --topic pageviews --partitions 6 --replication-factor 1
+echo ====== Create topic mdm.ais.jlm in local cluster
+kafka-topics --bootstrap-server localhost:9092 --create --topic mdm.ais.jlm --partitions 6 --replication-factor 1
 sleep 20
 printf "\n"
 
-echo ====== Deploying kafka-connect-datagen for pageviews
-source ./connectors/submit_datagen_pageviews_config.sh
+echo ====== Deploying kafka-connect-datagen for mdm.ais.jlm
+source ./connectors/submit_datagen_mdm.ais.jlm_config.sh
 printf "\n\n"
 
 echo ====== Start Local Connect cluster that connects to Confluent Cloud Kafka
@@ -165,18 +166,18 @@ echo ====== Deploying kafka-connect-datagen for users
 source ./connectors/submit_datagen_users_config.sh
 printf "\n"
 
-echo ====== Replicate local topic 'pageviews' to Confluent Cloud topic 'pageviews'
-# No need to pre-create topic pageviews in Confluent Cloud because Replicator will do this automatically
-ccloud::create_acls_replicator $serviceAccount pageviews
+echo ====== Replicate local topic 'mdm.ais.jlm' to Confluent Cloud topic 'mdm.ais.jlm'
+# No need to pre-create topic mdm.ais.jlm in Confluent Cloud because Replicator will do this automatically
+ccloud::create_acls_replicator $serviceAccount mdm.ais.jlm
 printf "\n"
 
 echo ====== Starting Replicator
 source ./connectors/submit_replicator_config.sh
 MAX_WAIT=60
-printf "\nWaiting up to $MAX_WAIT seconds for the topic pageviews to be created in Confluent Cloud"
-retry $MAX_WAIT ccloud::validate_topic_exists pageviews || exit 1
-printf "\nWaiting up to $MAX_WAIT seconds for the subject pageviews-value to be created in Confluent Cloud Schema Registry"
-retry $MAX_WAIT ccloud::validate_subject_exists "pageviews-value" $SCHEMA_REGISTRY_URL $SCHEMA_REGISTRY_BASIC_AUTH_USER_INFO || exit 1
+printf "\nWaiting up to $MAX_WAIT seconds for the topic mdm.ais.jlm to be created in Confluent Cloud"
+retry $MAX_WAIT ccloud::validate_topic_exists mdm.ais.jlm || exit 1
+printf "\nWaiting up to $MAX_WAIT seconds for the subject mdm.ais.jlm-value to be created in Confluent Cloud Schema Registry"
+retry $MAX_WAIT ccloud::validate_subject_exists "mdm.ais.jlm-value" $SCHEMA_REGISTRY_URL $SCHEMA_REGISTRY_BASIC_AUTH_USER_INFO || exit 1
 printf "\n\n"
 
 echo ====== Creating Confluent Cloud ksqlDB application
