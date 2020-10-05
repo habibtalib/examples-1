@@ -60,9 +60,9 @@ echo ====== Create topic users and set ACLs in Confluent Cloud cluster
 # users
 # ccloud kafka topic create users
 # ccloud kafka acl create --allow --service-account $serviceAccount --operation WRITE --topic users
-# pageviews
-# No need to pre-create topic pageviews in Confluent Cloud because Replicator will do this automatically
-ccloud::create_acls_replicator $serviceAccount pageviews
+# mdm.ais.jlm
+# No need to pre-create topic mdm.ais.jlm in Confluent Cloud because Replicator will do this automatically
+ccloud::create_acls_replicator $serviceAccount mdm.ais.jlm
 printf "\n"
 
 echo ====== Building custom Docker image with Connect version ${CONFLUENT_DOCKER_TAG} and connector version ${CONNECTOR_VERSION}
@@ -94,33 +94,33 @@ echo "Waiting up to $MAX_WAIT seconds for connect-cloud to start"
 retry $MAX_WAIT check_connect_up connect-cloud || exit 1
 printf "\n\n"
 
-# echo ====== Create topic pageviews in local cluster
-# docker-compose exec kafka kafka-topics --bootstrap-server localhost:9092 --create --topic pageviews --partitions 6 --replication-factor 1
-# MAX_WAIT=30
-# echo "Waiting up to $MAX_WAIT seconds for topic pageviews to exist in local cluster"
-# retry $MAX_WAIT check_topic_exists kafka kafka:9092 pageviews || exit 1
-# echo "Topic pageviews exists in local cluster"
-# printf "\n"
+echo ====== Create topic mdm.ais.jlm in local cluster
+docker-compose exec kafka kafka-topics --bootstrap-server localhost:9092 --create --topic mdm.ais.jlm --partitions 6 --replication-factor 1
+MAX_WAIT=30
+echo "Waiting up to $MAX_WAIT seconds for topic mdm.ais.jlm to exist in local cluster"
+retry $MAX_WAIT check_topic_exists kafka kafka:9092 mdm.ais.jlm || exit 1
+echo "Topic mdm.ais.jlm exists in local cluster"
+printf "\n"
 
 # echo ====== Deploying kafka-connect-datagen for users 
 # source ./connectors/submit_datagen_users_config.sh
 # printf "\n\n"
 
-# echo ====== Deploying kafka-connect-datagen for pageviews
-# source ./connectors/submit_datagen_pageviews_config.sh
+# echo ====== Deploying kafka-connect-datagen for mdm.ais.jlm
+# source ./connectors/submit_datagen_mdm.ais.jlm_config.sh
 # printf "\n\n"
 
 echo ====== Starting Replicator
 source ./connectors/submit_replicator_docker_config.sh
-# MAX_WAIT=120
-# printf "\nWaiting up to $MAX_WAIT seconds for the topic pageviews to be created in Confluent Cloud"
-# retry $MAX_WAIT ccloud::validate_topic_exists pageviews || exit 1
-# printf "\nWaiting up to $MAX_WAIT seconds for the subject pageviews-value to be created in Confluent Cloud Schema Registry"
-# retry $MAX_WAIT ccloud::validate_subject_exists "pageviews-value" $SCHEMA_REGISTRY_URL $SCHEMA_REGISTRY_BASIC_AUTH_USER_INFO || exit 1
-# printf "\n\n"
+MAX_WAIT=120
+printf "\nWaiting up to $MAX_WAIT seconds for the topic mdm.ais.jlm to be created in Confluent Cloud"
+retry $MAX_WAIT ccloud::validate_topic_exists mdm.ais.jlm || exit 1
+printf "\nWaiting up to $MAX_WAIT seconds for the subject mdm.ais.jlm-value to be created in Confluent Cloud Schema Registry"
+retry $MAX_WAIT ccloud::validate_subject_exists "mdm.ais.jlm-value" $SCHEMA_REGISTRY_URL $SCHEMA_REGISTRY_BASIC_AUTH_USER_INFO || exit 1
+printf "\n\n"
 
-# echo ====== Creating Confluent Cloud ksqlDB application
-# ./create_ksqldb_app.sh || exit 1
+echo ====== Creating Confluent Cloud ksqlDB application
+./create_ksqldb_app.sh || exit 1
 
 printf "\nDONE! Connect to your Confluent Cloud UI at https://confluent.cloud/ or Confluent Control Center at http://localhost:9021\n"
 echo
