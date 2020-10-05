@@ -17,9 +17,9 @@ check_jq \
 
 echo ====== Create new Confluent Cloud stack
 # ccloud::prompt_continue_ccloud_demo || exit 1
-# ccloud::create_ccloud_stack true
-# SERVICE_ACCOUNT_ID=$(ccloud kafka cluster list -o json | jq -r '.[0].name' | awk -F'-' '{print $4;}')
-SERVICE_ACCOUNT_ID=117368
+ccloud::create_ccloud_stack true
+SERVICE_ACCOUNT_ID=$(ccloud kafka cluster list -o json | jq -r '.[0].name' | awk -F'-' '{print $4;}')
+# SERVICE_ACCOUNT_ID=117368
 if [[ "$SERVICE_ACCOUNT_ID" == "" ]]; then
   echo "ERROR: Could not determine SERVICE_ACCOUNT_ID from 'ccloud kafka cluster list'. Please troubleshoot, destroy stack, and try again to create the stack."
   exit 1
