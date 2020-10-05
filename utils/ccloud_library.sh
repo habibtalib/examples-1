@@ -770,17 +770,17 @@ function ccloud::create_acls_connect_topics() {
 
   echo "Connect: creating topics and ACLs for service account $serviceAccount"
 
-  TOPIC=connect-demo-configs
+  TOPIC=connect-mdm-configs
   ccloud kafka topic create $TOPIC --partitions 1 --config "cleanup.policy=compact"
   ccloud kafka acl create --allow --service-account $serviceAccount --operation WRITE --topic $TOPIC --prefix
   ccloud kafka acl create --allow --service-account $serviceAccount --operation READ --topic $TOPIC --prefix
 
-  TOPIC=connect-demo-offsets
+  TOPIC=connect-mdm-offsets
   ccloud kafka topic create $TOPIC --partitions 6 --config "cleanup.policy=compact"
   ccloud kafka acl create --allow --service-account $serviceAccount --operation WRITE --topic $TOPIC --prefix
   ccloud kafka acl create --allow --service-account $serviceAccount --operation READ --topic $TOPIC --prefix
   
-  TOPIC=connect-demo-statuses 
+  TOPIC=connect-mdm-statuses 
   ccloud kafka topic create $TOPIC --partitions 3 --config "cleanup.policy=compact"
   ccloud kafka acl create --allow --service-account $serviceAccount --operation WRITE --topic $TOPIC --prefix
   ccloud kafka acl create --allow --service-account $serviceAccount --operation READ --topic $TOPIC --prefix
@@ -861,7 +861,7 @@ function ccloud::create_ccloud_stack() {
   if [[ -z "$SERVICE_ACCOUNT_ID" ]]; then
     # Service Account is not received so it will be created
     local RANDOM_NUM=$((1 + RANDOM % 1000000))
-    SERVICE_NAME=${SERVICE_NAME:-"demo-app-$RANDOM_NUM"}
+    SERVICE_NAME=${SERVICE_NAME:-"mdm-ais-$RANDOM_NUM"}
     SERVICE_ACCOUNT_ID=$(ccloud::create_service_account $SERVICE_NAME)
   fi
 
@@ -875,16 +875,22 @@ function ccloud::create_ccloud_stack() {
   if [[ -z "$ENVIRONMENT" ]]; 
   then
     # Environment is not received so it will be created
-    ENVIRONMENT_NAME=${ENVIRONMENT_NAME:-"demo-env-$SERVICE_ACCOUNT_ID"}
-    ENVIRONMENT=$(ccloud::create_and_use_environment $ENVIRONMENT_NAME) 
+    # ENVIRONMENT_NAME=${ENVIRONMENT_NAME:-"demo-env-$SERVICE_ACCOUNT_ID"}
+    # ENVIRONMENT=$(ccloud::create_and_use_environment $ENVIRONMENT_NAME) 
+    ENVIRONMENT_NAME=default
+    ENVIRONMENT=env-j8dgw
   else
     ccloud environment use $ENVIRONMENT &>/dev/null
   fi
   
-  CLUSTER_NAME=${CLUSTER_NAME:-"demo-kafka-cluster-$SERVICE_ACCOUNT_ID"}
-  CLUSTER_CLOUD="${CLUSTER_CLOUD:-aws}"
-  CLUSTER_REGION="${CLUSTER_REGION:-us-west-2}"
+  # CLUSTER_NAME=${CLUSTER_NAME:-"demo-kafka-cluster-$SERVICE_ACCOUNT_ID"}
+  # CLUSTER_CLOUD="${CLUSTER_CLOUD:-aws}"
+  # CLUSTER_REGION="${CLUSTER_REGION:-us-west-2}"
+  CLUSTER_NAME=${CLUSTER_NAME:-"mdm-analytic"}
+  CLUSTER_CLOUD="${CLUSTER_CLOUD:-gcp}"
+  CLUSTER_REGION="${CLUSTER_REGION:-asia-southeast1}"
   CLUSTER=$(ccloud::maybe_create_and_use_cluster "$CLUSTER_NAME" $CLUSTER_CLOUD $CLUSTER_REGION)
+  # CLUSTER=lkc-p973y
   if [[ "$CLUSTER" == "" ]] ; then
     echo "Kafka cluster id is empty"
     echo "ERROR: Could not create cluster. Please troubleshoot"
@@ -909,7 +915,7 @@ function ccloud::create_ccloud_stack() {
   SCHEMA_REGISTRY_CREDS=$(ccloud::maybe_create_credentials_resource $SERVICE_ACCOUNT_ID $SCHEMA_REGISTRY)
   
   if $enable_ksqldb ; then
-    KSQLDB_NAME=${KSQLDB_NAME:-"demo-ksqldb-$SERVICE_ACCOUNT_ID"}
+    KSQLDB_NAME=${KSQLDB_NAME:-"mdm-ksqldb-$SERVICE_ACCOUNT_ID"}
     KSQLDB=$(ccloud::maybe_create_ksqldb_app "$KSQLDB_NAME" $CLUSTER)
     KSQLDB_ENDPOINT=$(ccloud ksql app describe $KSQLDB -o json | jq -r ".endpoint")
     KSQLDB_CREDS=$(ccloud::maybe_create_credentials_resource $SERVICE_ACCOUNT_ID $KSQLDB)
@@ -972,8 +978,10 @@ EOF
 function ccloud::destroy_ccloud_stack() {
   SERVICE_ACCOUNT_ID=$1
 
-  ENVIRONMENT_NAME=${ENVIRONMENT_NAME:-"demo-env-$SERVICE_ACCOUNT_ID"}
-  CLUSTER_NAME=${CLUSTER_NAME:-"demo-kafka-cluster-$SERVICE_ACCOUNT_ID"}
+  # ENVIRONMENT_NAME=${ENVIRONMENT_NAME:-"demo-env-$SERVICE_ACCOUNT_ID"}
+  ENVIRONMENT_NAME=default
+  # CLUSTER_NAME=${CLUSTER_NAME:-"demo-kafka-cluster-$SERVICE_ACCOUNT_ID"}
+  CLUSTER_NAME=${CLUSTER_NAME:-"mdm-analytic"}
   CLIENT_CONFIG=${CLIENT_CONFIG:-"stack-configs/java-service-account-$SERVICE_ACCOUNT_ID.config"}
   KSQLDB_NAME=${KSQLDB_NAME:-"demo-ksqldb-$SERVICE_ACCOUNT_ID"}
 

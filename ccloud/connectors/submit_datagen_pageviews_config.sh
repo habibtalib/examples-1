@@ -14,8 +14,8 @@ DATA=$( cat << EOF
   "name": "datagen-pageviews",
   "config": {
     "connector.class": "io.confluent.kafka.connect.datagen.DatagenConnector",
-    "kafka.topic": "pageviews",
-    "quickstart": "pageviews",
+    "kafka.topic": "mdm-ais-sentence",
+    "quickstart": "mdm-ais-sentence",
     "key.converter": "org.apache.kafka.connect.storage.StringConverter",
     "value.converter": "io.confluent.connect.avro.AvroConverter",
     "value.converter.basic.auth.credentials.source": "$BASIC_AUTH_CREDENTIALS_SOURCE",

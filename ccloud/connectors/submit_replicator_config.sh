@@ -14,7 +14,7 @@ DATA=$( cat << EOF
   "name": "replicator",
   "config": {
     "connector.class": "io.confluent.connect.replicator.ReplicatorSourceConnector",
-    "topic.whitelist": "pageviews",
+    "topic.whitelist": "mdm-ais-sentence",
     "key.converter": "io.confluent.connect.replicator.util.ByteArrayConverter",
     "value.converter": "io.confluent.connect.replicator.util.ByteArrayConverter",
     "dest.topic.replication.factor": 3,

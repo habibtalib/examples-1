@@ -1,0 +1,12 @@
+[sources.ais]
+  type = "stdin" # required
+
+[sinks.bar]
+  inputs = ["ais"]
+  type = "kafka"
+  bootstrap_servers = "localhost:9092" # required
+  compression = "none" # optional, default
+  healthcheck = true # optional, default
+  key_field = "ais-message" # required
+  topic = "mdm-ais-sentence" # required
+  encoding.codec = "text" # optional, default

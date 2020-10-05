@@ -16,9 +16,10 @@ check_jq \
   || exit 1
 
 echo ====== Create new Confluent Cloud stack
-ccloud::prompt_continue_ccloud_demo || exit 1
-ccloud::create_ccloud_stack true
-SERVICE_ACCOUNT_ID=$(ccloud kafka cluster list -o json | jq -r '.[0].name' | awk -F'-' '{print $4;}')
+# ccloud::prompt_continue_ccloud_demo || exit 1
+# ccloud::create_ccloud_stack true
+# SERVICE_ACCOUNT_ID=$(ccloud kafka cluster list -o json | jq -r '.[0].name' | awk -F'-' '{print $4;}')
+SERVICE_ACCOUNT_ID=117368
 if [[ "$SERVICE_ACCOUNT_ID" == "" ]]; then
   echo "ERROR: Could not determine SERVICE_ACCOUNT_ID from 'ccloud kafka cluster list'. Please troubleshoot, destroy stack, and try again to create the stack."
   exit 1
@@ -46,10 +47,10 @@ echo ====== Set Kafka cluster and service account
 ccloud::set_kafka_cluster_use $CLOUD_KEY $CONFIG_FILE || exit 1
 serviceAccount=$(ccloud::get_service_account $CLOUD_KEY $CONFIG_FILE) || exit 1
 
-echo ====== Set ACLs for Confluent Control Center and Kafka Connect
-ccloud::create_acls_control_center $serviceAccount
-ccloud::create_acls_connect_topics $serviceAccount
-printf "\n"
+# echo ====== Set ACLs for Confluent Control Center and Kafka Connect
+# ccloud::create_acls_control_center $serviceAccount
+# ccloud::create_acls_connect_topics $serviceAccount
+# printf "\n"
 
 echo ====== Validate credentials to Confluent Cloud Schema Registry
 ccloud::validate_schema_registry_up $SCHEMA_REGISTRY_BASIC_AUTH_USER_INFO $SCHEMA_REGISTRY_URL || exit 1
@@ -57,8 +58,8 @@ printf "Done\n\n"
 
 echo ====== Create topic users and set ACLs in Confluent Cloud cluster
 # users
-ccloud kafka topic create users
-ccloud kafka acl create --allow --service-account $serviceAccount --operation WRITE --topic users
+# ccloud kafka topic create users
+# ccloud kafka acl create --allow --service-account $serviceAccount --operation WRITE --topic users
 # pageviews
 # No need to pre-create topic pageviews in Confluent Cloud because Replicator will do this automatically
 ccloud::create_acls_replicator $serviceAccount pageviews
@@ -93,33 +94,33 @@ echo "Waiting up to $MAX_WAIT seconds for connect-cloud to start"
 retry $MAX_WAIT check_connect_up connect-cloud || exit 1
 printf "\n\n"
 
-echo ====== Create topic pageviews in local cluster
-docker-compose exec kafka kafka-topics --bootstrap-server localhost:9092 --create --topic pageviews --partitions 6 --replication-factor 1
-MAX_WAIT=30
-echo "Waiting up to $MAX_WAIT seconds for topic pageviews to exist in local cluster"
-retry $MAX_WAIT check_topic_exists kafka kafka:9092 pageviews || exit 1
-echo "Topic pageviews exists in local cluster"
-printf "\n"
+# echo ====== Create topic pageviews in local cluster
+# docker-compose exec kafka kafka-topics --bootstrap-server localhost:9092 --create --topic pageviews --partitions 6 --replication-factor 1
+# MAX_WAIT=30
+# echo "Waiting up to $MAX_WAIT seconds for topic pageviews to exist in local cluster"
+# retry $MAX_WAIT check_topic_exists kafka kafka:9092 pageviews || exit 1
+# echo "Topic pageviews exists in local cluster"
+# printf "\n"
 
-echo ====== Deploying kafka-connect-datagen for users 
-source ./connectors/submit_datagen_users_config.sh
-printf "\n\n"
+# echo ====== Deploying kafka-connect-datagen for users 
+# source ./connectors/submit_datagen_users_config.sh
+# printf "\n\n"
 
-echo ====== Deploying kafka-connect-datagen for pageviews
-source ./connectors/submit_datagen_pageviews_config.sh
-printf "\n\n"
+# echo ====== Deploying kafka-connect-datagen for pageviews
+# source ./connectors/submit_datagen_pageviews_config.sh
+# printf "\n\n"
 
 echo ====== Starting Replicator
 source ./connectors/submit_replicator_docker_config.sh
-MAX_WAIT=120
-printf "\nWaiting up to $MAX_WAIT seconds for the topic pageviews to be created in Confluent Cloud"
-retry $MAX_WAIT ccloud::validate_topic_exists pageviews || exit 1
-printf "\nWaiting up to $MAX_WAIT seconds for the subject pageviews-value to be created in Confluent Cloud Schema Registry"
-retry $MAX_WAIT ccloud::validate_subject_exists "pageviews-value" $SCHEMA_REGISTRY_URL $SCHEMA_REGISTRY_BASIC_AUTH_USER_INFO || exit 1
-printf "\n\n"
+# MAX_WAIT=120
+# printf "\nWaiting up to $MAX_WAIT seconds for the topic pageviews to be created in Confluent Cloud"
+# retry $MAX_WAIT ccloud::validate_topic_exists pageviews || exit 1
+# printf "\nWaiting up to $MAX_WAIT seconds for the subject pageviews-value to be created in Confluent Cloud Schema Registry"
+# retry $MAX_WAIT ccloud::validate_subject_exists "pageviews-value" $SCHEMA_REGISTRY_URL $SCHEMA_REGISTRY_BASIC_AUTH_USER_INFO || exit 1
+# printf "\n\n"
 
-echo ====== Creating Confluent Cloud ksqlDB application
-./create_ksqldb_app.sh || exit 1
+# echo ====== Creating Confluent Cloud ksqlDB application
+# ./create_ksqldb_app.sh || exit 1
 
 printf "\nDONE! Connect to your Confluent Cloud UI at https://confluent.cloud/ or Confluent Control Center at http://localhost:9021\n"
 echo
